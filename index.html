@@ -74,49 +74,57 @@
             
             btn.disabled = true; btn.innerText = "...";
             hasil.innerHTML = "Memuat...";
-
+        
             try {
                 const res = await fetch(API_URL);
                 const rows = await res.json();
                 btn.disabled = false; btn.innerText = "CARI";
                 hasil.innerHTML = "";
-
+        
                 const filtered = rows.slice(1).filter(r => r[1].includes(tgl));
-                if(filtered.length === 0) hasil.innerHTML = "<p class='text-center text-slate-500'>Tidak ada data.</p>";
-
+                if(filtered.length === 0) {
+                    hasil.innerHTML = "<p class='text-center text-slate-500'>Tidak ada data pada tanggal ini.</p>";
+                    return;
+                }
+        
                 filtered.forEach(r => {
                     let originalUrl = r[7] || "";
                     let fotoUrl = "";
                     
                     if (originalUrl.includes("drive.google.com")) {
-                        // Mengambil ID file menggunakan regex (paling aman)
                         let fileId = originalUrl.match(/[-\w]{25,}/);
                         if (fileId) {
-                            // Menggunakan link thumbnail s1000 agar gambar muncul jelas dan cepat
-                            fotoUrl = `https://lh3.googleusercontent.com/d/${fileId[0]}=s1000`;
+                            // Kita gunakan format thumbnail dari google drive yang lebih stabil
+                            fotoUrl = `https://drive.google.com/thumbnail?id=${fileId[0]}&sz=w1000`;
                         }
                     }
                     
                     hasil.innerHTML += `
-                        <div class="bg-slate-700 p-4 rounded-xl relative border-l-4 border-blue-500">
+                        <div class="bg-slate-700 p-4 rounded-xl relative border-l-4 border-blue-500 mb-4">
                             <button onclick="hapusData('${r[0]}')" class="absolute top-2 right-2 text-red-500 font-bold p-1">❌</button>
                             <p class="text-[10px] text-blue-300 font-bold uppercase mb-1">${r[2]}</p>
                             <h3 class="font-bold text-white text-lg leading-tight">${r[3]}</h3>
                             <p class="text-sm text-slate-300 italic my-2">"${r[4]}"</p>
                             <p class="text-[10px] text-slate-400 mb-2 font-mono">⏱ ${r[5]} - ${r[6]}</p>
+                            
                             <div class="overflow-hidden rounded-lg bg-slate-800 border border-slate-600">
                                 <img src="${fotoUrl}" 
                                      class="w-full h-48 object-cover" 
                                      onerror="this.src='https://via.placeholder.com/400x200?text=Gambar+Masih+Diproses'">
                             </div>
+                            
                             <a href="${originalUrl}" target="_blank" class="block text-center text-[10px] text-blue-400 mt-2 hover:underline italic">
                                 🔗 Buka Link Asli Drive
                             </a>
                         </div>`;
                 });
-            } catch (e) { alert("Error koneksi!"); btn.disabled = false; }
+            } catch (e) { 
+                alert("Error koneksi! Pastikan API URL benar dan sudah di-Deploy sebagai 'Anyone'."); 
+                btn.disabled = false; 
+                btn.innerText = "CARI";
+            }
         }
-
+        
         async function hapusData(id) {
             if(confirm("Hapus data ini secara permanen?")) {
                 const btn = document.getElementById('btnCari');
