@@ -3,54 +3,101 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Logbook Automation Staff</title>
+    <title>Logbook Automation System</title>
     <script src="https://cdn.tailwindcss.com"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/xlsx/0.18.5/xlsx.full.min.js"></script>
 </head>
 <body class="bg-slate-900 text-white min-h-screen p-4 font-sans text-sm">
-    <div class="max-w-md mx-auto">
-        <h1 class="text-2xl font-bold text-blue-400 mb-6 text-center">⚙️ Logbook Automation Staff</h1>
+    <div class="max-w-6xl mx-auto">
+        <h1 class="text-3xl font-bold text-blue-400 mb-8 text-center drop-shadow-lg">⚙️ Logbook Automation Staff</h1>
 
-        <div class="bg-slate-800 p-5 rounded-2xl shadow-xl mb-8 border border-slate-700">
-            <h2 class="text-xs font-bold uppercase tracking-wider text-slate-400 mb-4">Input Tugas Harian</h2>
-            <div class="space-y-3">
-                <input type="text" id="nama" placeholder="Nama Staff" class="w-full bg-slate-700 p-3 rounded-lg border-none text-white">
-                <input type="date" id="tgl" class="w-full bg-slate-700 p-3 rounded-lg border-none text-white">
-                <input type="text" id="mesin" placeholder="Nama Mesin / Area" class="w-full bg-slate-700 p-3 rounded-lg border-none text-white">
-                <textarea id="keterangan" placeholder="Keterangan Kegiatan" class="w-full bg-slate-700 p-3 rounded-lg border-none h-20 text-white"></textarea>
-                <div class="flex gap-2">
-                    <input type="time" id="mulai" class="w-1/2 bg-slate-700 p-3 rounded-lg border-none text-white">
-                    <input type="time" id="selesai" class="w-1/2 bg-slate-700 p-3 rounded-lg border-none text-white">
+        <div class="grid grid-cols-1 lg:grid-cols-2 gap-8">
+            
+            <div class="bg-slate-800 p-6 rounded-2xl shadow-2xl border border-slate-700 h-fit">
+                <h2 class="text-sm font-bold uppercase tracking-widest text-blue-400 mb-6 flex items-center">
+                    <span class="bg-blue-400 w-2 h-2 rounded-full mr-2"></span> Input Tugas Harian
+                </h2>
+                <div class="space-y-4">
+                    <select id="nama" class="w-full bg-slate-700 p-3 rounded-xl border border-slate-600 focus:ring-2 focus:ring-blue-500 outline-none transition-all">
+                        <option value="">-- Pilih Nama Staff --</option>
+                        <option value="Arya Rangga">Arya Rangga</option>
+                        <option value="Staff Lain">Staff Lain</option>
+                    </select>
+                    
+                    <input type="date" id="tgl" class="w-full bg-slate-700 p-3 rounded-xl border border-slate-600 outline-none">
+                    <input type="text" id="mesin" placeholder="Nama Mesin / Area" class="w-full bg-slate-700 p-3 rounded-xl border border-slate-600 outline-none">
+                    <textarea id="keterangan" placeholder="Keterangan Kegiatan" class="w-full bg-slate-700 p-3 rounded-xl border border-slate-600 h-24 outline-none"></textarea>
+                    
+                    <div class="flex gap-3">
+                        <div class="w-1/2">
+                            <label class="text-[10px] text-slate-400 ml-1">Jam Mulai</label>
+                            <input type="time" id="mulai" class="w-full bg-slate-700 p-3 rounded-xl border border-slate-600 outline-none">
+                        </div>
+                        <div class="w-1/2">
+                            <label class="text-[10px] text-slate-400 ml-1">Jam Selesai</label>
+                            <input type="time" id="selesai" class="w-full bg-slate-700 p-3 rounded-xl border border-slate-600 outline-none">
+                        </div>
+                    </div>
+
+                    <div class="relative">
+                        <label class="block text-xs text-slate-400 mb-2">Unggah Foto Kegiatan</label>
+                        <input type="file" id="foto" accept="image/*" class="block w-full text-sm text-slate-400 file:mr-4 file:py-2 file:px-4 file:rounded-full file:border-0 file:text-sm file:font-semibold file:bg-blue-600 file:text-white hover:file:bg-blue-700 cursor-pointer">
+                    </div>
+
+                    <button onclick="simpanData()" id="btnSimpan" class="w-full bg-blue-600 hover:bg-blue-700 py-4 rounded-xl font-bold transition-all shadow-lg active:scale-95 text-lg mt-4">🚀 Simpan Logbook</button>
                 </div>
-                <input type="file" id="foto" accept="image/*" capture="environment" class="text-xs text-slate-400 mt-2">
-                <button onclick="simpanData()" id="btnSimpan" class="w-full bg-blue-600 hover:bg-blue-700 py-3 rounded-xl font-bold transition shadow-lg active:scale-95">🚀 Simpan Logbook</button>
             </div>
-        </div>
 
-        <div class="bg-slate-800 p-5 rounded-2xl shadow-xl border border-slate-700">
-            <h2 class="text-xs font-bold uppercase tracking-wider text-green-400 mb-4">Rekap Harian</h2>
-            <div class="flex gap-2 mb-4">
-                <input type="date" id="cariTgl" class="flex-grow bg-slate-700 p-3 rounded-lg border-none text-white">
-                <button onclick="muatData()" id="btnCari" class="bg-green-600 px-6 rounded-lg font-bold">CARI</button>
+            <div class="bg-slate-800 p-6 rounded-2xl shadow-2xl border border-slate-700">
+                <div class="flex justify-between items-center mb-6">
+                    <h2 class="text-sm font-bold uppercase tracking-widest text-green-400 flex items-center">
+                        <span class="bg-green-400 w-2 h-2 rounded-full mr-2"></span> Rekap & Filter Data
+                    </h2>
+                    <button onclick="exportKeExcel()" class="bg-emerald-600 hover:bg-emerald-700 px-3 py-1.5 rounded-lg text-xs font-bold transition-all flex items-center">
+                        📊 EXPORT EXCEL
+                    </button>
+                </div>
+
+                <div class="bg-slate-900/50 p-4 rounded-xl mb-6 border border-slate-700 space-y-3">
+                    <div class="flex gap-2">
+                        <div class="w-1/2">
+                            <label class="text-[10px] text-slate-500">Dari Tanggal</label>
+                            <input type="date" id="filterTglMulai" class="w-full bg-slate-700 p-2 rounded-lg border-none text-xs">
+                        </div>
+                        <div class="w-1/2">
+                            <label class="text-[10px] text-slate-500">Sampai Tanggal</label>
+                            <input type="date" id="filterTglSelesai" class="w-full bg-slate-700 p-2 rounded-lg border-none text-xs">
+                        </div>
+                    </div>
+                    <input type="text" id="filterMesin" placeholder="Cari Nama Mesin..." class="w-full bg-slate-700 p-2 rounded-lg border-none text-xs">
+                    <button onclick="muatData()" id="btnCari" class="w-full bg-green-600 hover:bg-green-700 py-2.5 rounded-lg font-bold transition-all">TAMPILKAN DATA</button>
+                </div>
+
+                <div id="hasil" class="space-y-4 max-h-[600px] overflow-y-auto pr-2 custom-scrollbar">
+                    <p class="text-center text-slate-500 italic py-10">Gunakan filter untuk menampilkan data.</p>
+                </div>
             </div>
-            <div id="hasil" class="space-y-4"></div>
         </div>
     </div>
 
     <script>
         const API_URL = "https://script.google.com/macros/s/AKfycbxmg27cYfWOHs_zrJweHYn-UDjuGlkanzYYYECBK2LRldc1MxCPDqfjojZnTQ0SzE7H/exec";
+        let DATA_TERFILTER = []; // Untuk kebutuhan export
 
         async function simpanData() {
             const btn = document.getElementById('btnSimpan');
             const file = document.getElementById('foto').files[0];
-            if(!file || !document.getElementById('nama').value) return alert("Lengkapi data & foto!");
+            const nama = document.getElementById('nama').value;
             
-            btn.disabled = true; btn.innerText = "⌛ Memproses...";
+            if(!file || !nama) return alert("Pilih Nama Staff dan unggah foto!");
+            
+            btn.disabled = true; btn.innerText = "⌛ Mengunggah...";
             const reader = new FileReader();
             reader.readAsDataURL(file);
             reader.onload = async () => {
                 const payload = {
                     action: "simpan",
-                    nama: document.getElementById('nama').value,
+                    nama: nama,
                     tanggal: document.getElementById('tgl').value,
                     mesin: document.getElementById('mesin').value,
                     keterangan: document.getElementById('keterangan').value,
@@ -60,80 +107,99 @@
                 };
                 try {
                     await fetch(API_URL, { method: "POST", body: JSON.stringify(payload) });
-                    alert("✅ Berhasil Disimpan!");
+                    alert("✅ Logbook Berhasil Disimpan!");
                     location.reload();
                 } catch (e) { alert("Gagal Simpan"); btn.disabled = false; btn.innerText = "🚀 Simpan Logbook"; }
             };
         }
 
         async function muatData() {
-            const tgl = document.getElementById('cariTgl').value;
+            const tglMulai = document.getElementById('filterTglMulai').value;
+            const tglSelesai = document.getElementById('filterTglSelesai').value;
+            const cariMesin = document.getElementById('filterMesin').value.toLowerCase();
             const btn = document.getElementById('btnCari');
             const hasil = document.getElementById('hasil');
-            if(!tgl) return alert("Pilih tanggal!");
-            
-            btn.disabled = true; btn.innerText = "...";
-            hasil.innerHTML = "Memuat...";
-        
+
+            btn.disabled = true; btn.innerText = "Mencari...";
+            hasil.innerHTML = "<div class='text-center py-10'>Memuat data dari server...</div>";
+
             try {
                 const res = await fetch(API_URL);
                 const rows = await res.json();
-                btn.disabled = false; btn.innerText = "CARI";
+                btn.disabled = false; btn.innerText = "TAMPILKAN DATA";
                 hasil.innerHTML = "";
-        
-                const filtered = rows.slice(1).filter(r => r[1].includes(tgl));
-                if(filtered.length === 0) {
-                    hasil.innerHTML = "<p class='text-center text-slate-500'>Tidak ada data pada tanggal ini.</p>";
+                
+                DATA_TERFILTER = rows.slice(1).filter(r => {
+                    const tglData = r[1]; // Format YYYY-MM-DD
+                    const mesinData = r[3].toLowerCase();
+                    
+                    let matchTgl = true;
+                    if(tglMulai && tglSelesai) {
+                        matchTgl = tglData >= tglMulai && tglData <= tglSelesai;
+                    } else if (tglMulai) {
+                        matchTgl = tglData === tglMulai;
+                    }
+
+                    const matchMesin = mesinData.includes(cariMesin);
+                    return matchTgl && matchMesin;
+                });
+
+                if(DATA_TERFILTER.length === 0) {
+                    hasil.innerHTML = "<p class='text-center text-slate-500 py-10'>Data tidak ditemukan.</p>";
                     return;
                 }
-        
-                filtered.forEach(r => {
-                    let originalUrl = r[7] || "";
-                    let fotoUrl = "";
-                    
-                    if (originalUrl.includes("drive.google.com")) {
-                        let fileId = originalUrl.match(/[-\w]{25,}/);
-                        if (fileId) {
-                            // Kita gunakan format thumbnail dari google drive yang lebih stabil
-                            fotoUrl = `https://drive.google.com/thumbnail?id=${fileId[0]}&sz=w1000`;
-                        }
-                    }
+
+                DATA_TERFILTER.forEach(r => {
+                    let fileId = r[7].match(/[-\w]{25,}/);
+                    let fotoUrl = fileId ? `https://drive.google.com/thumbnail?id=${fileId[0]}&sz=w1000` : "";
                     
                     hasil.innerHTML += `
-                        <div class="bg-slate-700 p-4 rounded-xl relative border-l-4 border-blue-500 mb-4">
-                            <button onclick="hapusData('${r[0]}')" class="absolute top-2 right-2 text-red-500 font-bold p-1">❌</button>
-                            <p class="text-[10px] text-blue-300 font-bold uppercase mb-1">${r[2]}</p>
-                            <h3 class="font-bold text-white text-lg leading-tight">${r[3]}</h3>
-                            <p class="text-sm text-slate-300 italic my-2">"${r[4]}"</p>
-                            <p class="text-[10px] text-slate-400 mb-2 font-mono">⏱ ${r[5]} - ${r[6]}</p>
-                            
-                            <div class="overflow-hidden rounded-lg bg-slate-800 border border-slate-600">
-                                <img src="${fotoUrl}" 
-                                     class="w-full h-48 object-cover" 
-                                     onerror="this.src='https://via.placeholder.com/400x200?text=Gambar+Masih+Diproses'">
+                        <div class="bg-slate-700/50 p-4 rounded-xl relative border border-slate-600 shadow-sm">
+                            <button onclick="hapusData('${r[0]}')" class="absolute top-3 right-3 text-red-400 hover:text-red-600 transition">❌</button>
+                            <span class="px-2 py-0.5 bg-blue-500 text-[9px] font-bold rounded uppercase">${r[2]}</span>
+                            <p class="text-[10px] text-slate-400 mt-1">${r[1]}</p>
+                            <h3 class="font-bold text-white text-base mt-1">${r[3]}</h3>
+                            <p class="text-xs text-slate-300 italic my-2">"${r[4]}"</p>
+                            <div class="flex items-center text-[10px] text-slate-400 mb-3">
+                                <span class="mr-3">⏱ ${r[5]} - ${r[6]}</span>
                             </div>
-                            
-                            <a href="${originalUrl}" target="_blank" class="block text-center text-[10px] text-blue-400 mt-2 hover:underline italic">
-                                🔗 Buka Link Asli Drive
-                            </a>
+                            <img src="${fotoUrl}" class="w-full h-44 object-cover rounded-lg bg-slate-800 border border-slate-600 cursor-pointer hover:opacity-90" onclick="window.open('${r[7]}', '_blank')">
                         </div>`;
                 });
-            } catch (e) { 
-                alert("Error koneksi! Pastikan API URL benar dan sudah di-Deploy sebagai 'Anyone'."); 
-                btn.disabled = false; 
-                btn.innerText = "CARI";
-            }
+            } catch (e) { alert("Error koneksi server!"); btn.disabled = false; }
         }
-        
+
+        function exportKeExcel() {
+            if(DATA_TERFILTER.length === 0) return alert("Tampilkan data terlebih dahulu sebelum export!");
+            
+            const ws = XLSX.utils.json_to_sheet(DATA_TERFILTER.map(r => ({
+                "ID": r[0],
+                "Tanggal": r[1],
+                "Nama": r[2],
+                "Mesin": r[3],
+                "Keterangan": r[4],
+                "Mulai": r[5],
+                "Selesai": r[6],
+                "Link Foto": r[7]
+            })));
+            const wb = XLSX.utils.book_new();
+            XLSX.utils.book_append_sheet(wb, ws, "Rekap Logbook");
+            XLSX.writeFile(wb, `Logbook_Export_${new Date().toLocaleDateString()}.xlsx`);
+        }
+
         async function hapusData(id) {
-            if(confirm("Hapus data ini secara permanen?")) {
-                const btn = document.getElementById('btnCari');
-                btn.innerText = "⌛";
+            if(confirm("Hapus data secara permanen?")) {
                 await fetch(API_URL, { method: "POST", body: JSON.stringify({action: "hapus", id: id}) });
                 alert("Data dihapus!");
                 muatData();
             }
         }
     </script>
+
+    <style>
+        .custom-scrollbar::-webkit-scrollbar { width: 5px; }
+        .custom-scrollbar::-webkit-scrollbar-track { background: transparent; }
+        .custom-scrollbar::-webkit-scrollbar-thumb { background: #475569; border-radius: 10px; }
+    </style>
 </body>
 </html>
