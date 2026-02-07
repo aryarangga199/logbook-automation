@@ -51,8 +51,8 @@
     </div>
 
     <script>
-        // URL API Google Apps Script kamu
-        const API_URL = "https://script.google.com/macros/s/AKfycbzw2cV0gpzDK0LoGNcGYNidEyVt_tjTOrpnCsQwtyWWtv6MzGynCF7GDYY7Gd2K573F/exec";
+        // API Google Apps Script
+        const API_URL = "https://script.google.com/macros/s/AKfycbzei5oUoawInD5CkNhqPDb_4CK3xJ5IQ4O6LMKlCgCyabMa8sa1emUHQfUwZ7GTeA11/exec";
 
         async function simpanData() {
             const btn = document.getElementById('btnSimpan');
@@ -95,69 +95,75 @@
         }
 
         async function muatData() {
-            const tglInput = document.getElementById('cariTgl').value;
+            const tglInput = document.getElementById('cariTgl').value; // Format: YYYY-MM-DD
             const btn = document.getElementById('btnCari');
             const hasil = document.getElementById('hasil');
             
-            if(!tglInput) return alert("Pilih tanggal pencarian!");
+            if(!tglInput) return alert("Pilih tanggal!");
             
             btn.disabled = true;
-            btn.innerText = "...";
-            hasil.innerHTML = "<p class='text-center animate-pulse text-blue-400'>Sedang menarik data...</p>";
-
+            btn.innerText = "⏳...";
+            hasil.innerHTML = "Mencari data...";
+        
             try {
                 const res = await fetch(API_URL);
-                const rows = await res.json();
+                const rows = await res.json(); // Data dari Google Sheet
+                
                 btn.disabled = false;
                 btn.innerText = "CARI";
+                
+                // Bersihkan hasil sebelumnya
                 hasil.innerHTML = "";
-
-                // PERBAIKAN LOGIKA FILTER:
+        
+                // Filter: Kita samakan format tanggal
                 const filtered = rows.slice(1).filter(r => {
                     if (!r[1]) return false;
                     
-                    // Kita paksa format tanggal dari Sheets menjadi YYYY-MM-DD
-                    let dateFromSheet = "";
+                    // Konversi tanggal dari Sheet ke format YYYY-MM-DD
+                    let tanggalSheet = "";
                     try {
-                        const d = new Date(r[1]);
-                        const year = d.getFullYear();
-                        const month = ("0" + (d.getMonth() + 1)).slice(-2);
-                        const day = ("0" + d.getDate()).slice(-2);
-                        dateFromSheet = `${year}-${month}-${day}`;
+                        let d = new Date(r[1]);
+                        let y = d.getFullYear();
+                        let m = ("0" + (d.getMonth() + 1)).slice(-2);
+                        let day = ("0" + d.getDate()).slice(-2);
+                        tanggalSheet = `${y}-${m}-${day}`;
                     } catch(e) {
-                        dateFromSheet = r[1].toString().split('T')[0];
+                        // Jika gagal konversi, ambil string depannya saja
+                        tanggalSheet = r[1].toString().substring(0, 10);
                     }
-
-                    return dateFromSheet === tglInput;
+                    
+                    return tanggalSheet === tglInput;
                 });
-                
-                if(filtered.length === 0) {
-                    hasil.innerHTML = "<p class='text-center text-red-400 bg-red-900/20 p-3 rounded-lg'>Tidak ada kegiatan pada tanggal " + tglInput + "</p>";
+        
+                if (filtered.length === 0) {
+                    hasil.innerHTML = `<div class="text-center p-4 bg-orange-900/20 text-orange-400 rounded-lg">
+                        Data tanggal ${tglInput} tidak ditemukan di Sheet.
+                    </div>`;
                     return;
                 }
-
+        
                 filtered.forEach(r => {
+                    // Link foto Drive agar bisa tampil di web
+                    let fotoUrl = r[7].replace("file/d/", "uc?export=view&id=").replace("/view?usp=drivesdk", "");
+                    
                     hasil.innerHTML += `
-                        <div class="bg-slate-700 p-4 rounded-xl relative border-l-4 border-green-500 shadow-md">
-                            <button onclick="hapusData('${r[0]}')" class="absolute top-2 right-2 text-slate-500 hover:text-red-500 p-1">❌</button>
-                            <p class="text-[10px] text-blue-400 font-bold uppercase tracking-widest mb-1">${r[2] || 'Staff'}</p>
-                            <h3 class="font-bold text-lg text-white leading-tight">${r[3] || 'Mesin'}</h3>
-                            <p class="text-sm text-slate-300 my-2">"${r[4] || '-'}"</p>
-                            <div class="flex items-center text-[10px] text-slate-400 mb-3">
-                                ⏱ <span class="ml-1">${r[5]} s/d ${r[6]}</span>
-                            </div>
-                            <a href="${r[7]}" target="_blank" class="block overflow-hidden rounded-lg border border-slate-600">
-                                <img src="${r[7]}" class="w-full h-40 object-cover" alt="Foto">
-                            </a>
+                        <div class="bg-slate-700 p-4 rounded-xl border-l-4 border-blue-500 shadow-md mb-4">
+                            <p class="text-[10px] text-blue-300 font-bold uppercase">${r[2]}</p>
+                            <h3 class="font-bold text-white text-lg">${r[3]}</h3>
+                            <p class="text-sm text-slate-300 italic my-2">"${r[4]}"</p>
+                            <p class="text-[10px] text-slate-400">⏱ ${r[5]} - ${r[6]}</p>
+                            <img src="${fotoUrl}" class="mt-3 w-full h-48 object-cover rounded-lg bg-slate-800" onerror="this.src='https://via.placeholder.com/400x200?text=Foto+Proses+Sinkronisasi'">
                         </div>`;
                 });
-            } catch (e) { 
+        
+            } catch (e) {
                 btn.disabled = false;
                 btn.innerText = "CARI";
-                hasil.innerHTML = "<p class='text-center text-red-400'>Koneksi error atau API belum siap.</p>"; 
+                console.error(e);
+                hasil.innerHTML = "Terjadi kesalahan koneksi.";
             }
         }
-
+        
         async function hapusData(id) {
             if(confirm("Hapus log kegiatan ini secara permanen?")) {
                 try {
