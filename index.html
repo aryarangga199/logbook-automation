@@ -103,7 +103,7 @@
             
             btn.disabled = true;
             btn.innerText = "...";
-            hasil.innerHTML = "<p class='text-center animate-pulse text-blue-400'>Sedang menarik data dari Sheets...</p>";
+            hasil.innerHTML = "<p class='text-center animate-pulse text-blue-400'>Sedang menarik data...</p>";
 
             try {
                 const res = await fetch(API_URL);
@@ -112,52 +112,49 @@
                 btn.innerText = "CARI";
                 hasil.innerHTML = "";
 
-                // Filter data berdasarkan tanggal (Kolom index 1)
-                // r[1] seringkali berisi format ISO atau String, kita samakan formatnya
+                // PERBAIKAN LOGIKA FILTER:
                 const filtered = rows.slice(1).filter(r => {
                     if (!r[1]) return false;
-                    const dateFromSheet = new Date(r[1]).toISOString().split('T')[0];
+                    
+                    // Kita paksa format tanggal dari Sheets menjadi YYYY-MM-DD
+                    let dateFromSheet = "";
+                    try {
+                        const d = new Date(r[1]);
+                        const year = d.getFullYear();
+                        const month = ("0" + (d.getMonth() + 1)).slice(-2);
+                        const day = ("0" + d.getDate()).slice(-2);
+                        dateFromSheet = `${year}-${month}-${day}`;
+                    } catch(e) {
+                        dateFromSheet = r[1].toString().split('T')[0];
+                    }
+
                     return dateFromSheet === tglInput;
                 });
                 
                 if(filtered.length === 0) {
-                    hasil.innerHTML = "<p class='text-center text-red-400 bg-red-900/20 p-3 rounded-lg'>Tidak ada kegiatan pada tanggal ini.</p>";
+                    hasil.innerHTML = "<p class='text-center text-red-400 bg-red-900/20 p-3 rounded-lg'>Tidak ada kegiatan pada tanggal " + tglInput + "</p>";
                     return;
                 }
 
                 filtered.forEach(r => {
-                    // Hitung durasi sederhana
-                    let durasiTeks = "";
-                    if(r[5] && r[6]) {
-                        const m = r[5].split(':');
-                        const s = r[6].split(':');
-                        const totalMenit = (parseInt(s[0])*60 + parseInt(s[1])) - (parseInt(m[0])*60 + parseInt(m[1]));
-                        const jam = Math.floor(totalMenit/60);
-                        const mnt = totalMenit%60;
-                        durasiTeks = `${jam > 0 ? jam + ' jam ' : ''}${mnt} menit`;
-                    }
-
                     hasil.innerHTML += `
                         <div class="bg-slate-700 p-4 rounded-xl relative border-l-4 border-green-500 shadow-md">
                             <button onclick="hapusData('${r[0]}')" class="absolute top-2 right-2 text-slate-500 hover:text-red-500 p-1">❌</button>
-                            <div class="flex justify-between items-start mb-1">
-                                <p class="text-[10px] text-blue-400 font-bold uppercase tracking-widest">${r[2] || 'Tanpa Nama'}</p>
-                                <p class="text-[9px] bg-slate-600 px-2 py-0.5 rounded text-slate-300 font-mono italic">${durasiTeks}</p>
-                            </div>
-                            <h3 class="font-bold text-lg text-white leading-tight">${r[3] || 'Mesin Umum'}</h3>
-                            <p class="text-sm text-slate-300 my-2 leading-relaxed">"${r[4] || '-'}"</p>
-                            <div class="flex items-center text-[10px] text-slate-400 mb-3 bg-slate-800/50 w-fit px-2 py-1 rounded">
-                                ⏱ <span class="ml-1">${r[5] || '??'} s/d ${r[6] || '??'}</span>
+                            <p class="text-[10px] text-blue-400 font-bold uppercase tracking-widest mb-1">${r[2] || 'Staff'}</p>
+                            <h3 class="font-bold text-lg text-white leading-tight">${r[3] || 'Mesin'}</h3>
+                            <p class="text-sm text-slate-300 my-2">"${r[4] || '-'}"</p>
+                            <div class="flex items-center text-[10px] text-slate-400 mb-3">
+                                ⏱ <span class="ml-1">${r[5]} s/d ${r[6]}</span>
                             </div>
                             <a href="${r[7]}" target="_blank" class="block overflow-hidden rounded-lg border border-slate-600">
-                                <img src="${r[7]}" class="w-full h-40 object-cover hover:scale-105 transition duration-300" alt="Foto Kegiatan">
+                                <img src="${r[7]}" class="w-full h-40 object-cover" alt="Foto">
                             </a>
                         </div>`;
                 });
             } catch (e) { 
                 btn.disabled = false;
                 btn.innerText = "CARI";
-                hasil.innerHTML = "<p class='text-center text-red-400'>Gagal terhubung ke database. Pastikan koneksi internet stabil.</p>"; 
+                hasil.innerHTML = "<p class='text-center text-red-400'>Koneksi error atau API belum siap.</p>"; 
             }
         }
 
