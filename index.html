@@ -102,65 +102,62 @@
             if(!tglInput) return alert("Pilih tanggal!");
             
             btn.disabled = true;
-            btn.innerText = "⏳...";
-            hasil.innerHTML = "Mencari data...";
+            btn.innerText = "⌛";
+            hasil.innerHTML = "Sedang sinkronisasi zona waktu...";
         
             try {
                 const res = await fetch(API_URL);
-                const rows = await res.json(); // Data dari Google Sheet
+                const rows = await res.json();
                 
                 btn.disabled = false;
                 btn.innerText = "CARI";
-                
-                // Bersihkan hasil sebelumnya
                 hasil.innerHTML = "";
         
-                // Filter: Kita samakan format tanggal
                 const filtered = rows.slice(1).filter(r => {
                     if (!r[1]) return false;
-                    
-                    // Konversi tanggal dari Sheet ke format YYYY-MM-DD
-                    let tanggalSheet = "";
-                    try {
-                        let d = new Date(r[1]);
-                        let y = d.getFullYear();
-                        let m = ("0" + (d.getMonth() + 1)).slice(-2);
-                        let day = ("0" + d.getDate()).slice(-2);
-                        tanggalSheet = `${y}-${m}-${day}`;
-                    } catch(e) {
-                        // Jika gagal konversi, ambil string depannya saja
-                        tanggalSheet = r[1].toString().substring(0, 10);
-                    }
-                    
-                    return tanggalSheet === tglInput;
+                    let tglSheet = r[1].toString().substring(0, 10);
+                    let d = new Date(r[1]);
+                    let tglFormat = d.getFullYear() + "-" + 
+                                    ("0" + (d.getMonth() + 1)).slice(-2) + "-" + 
+                                    ("0" + d.getDate()).slice(-2);
+        
+                    return tglSheet === tglInput || tglFormat === tglInput;
                 });
         
                 if (filtered.length === 0) {
-                    hasil.innerHTML = `<div class="text-center p-4 bg-orange-900/20 text-orange-400 rounded-lg">
-                        Data tanggal ${tglInput} tidak ditemukan di Sheet.
-                    </div>`;
+                    hasil.innerHTML = `<p class='text-center text-orange-400'>Data tidak ditemukan untuk tanggal ${tglInput}.</p>`;
                     return;
                 }
         
                 filtered.forEach(r => {
-                    // Link foto Drive agar bisa tampil di web
-                    let fotoUrl = r[7].replace("file/d/", "uc?export=view&id=").replace("/view?usp=drivesdk", "");
-                    
+                    const formatJam = (val) => {
+                        if(!val) return "--:--";
+                        let str = val.toString();
+                        if(str.includes("T")) return str.split("T")[1].substring(0, 5);
+                        return str;
+                    };
+        
+                    let fotoUrl = r[7].replace("file/d/", "uc?export=view&id=").split("/view")[0];
+        
                     hasil.innerHTML += `
-                        <div class="bg-slate-700 p-4 rounded-xl border-l-4 border-blue-500 shadow-md mb-4">
-                            <p class="text-[10px] text-blue-300 font-bold uppercase">${r[2]}</p>
+                        <div class="bg-slate-700 p-4 rounded-xl border-l-4 border-blue-500 shadow-lg mb-4">
+                            <div class="flex justify-between items-center mb-2">
+                                <span class="text-[10px] bg-blue-600 px-2 py-0.5 rounded text-white uppercase font-bold">${r[2]}</span>
+                                <span class="text-[10px] text-slate-400 font-mono">⏱ ${formatJam(r[5])} - ${formatJam(r[6])}</span>
+                            </div>
                             <h3 class="font-bold text-white text-lg">${r[3]}</h3>
                             <p class="text-sm text-slate-300 italic my-2">"${r[4]}"</p>
-                            <p class="text-[10px] text-slate-400">⏱ ${r[5]} - ${r[6]}</p>
-                            <img src="${fotoUrl}" class="mt-3 w-full h-48 object-cover rounded-lg bg-slate-800" onerror="this.src='https://via.placeholder.com/400x200?text=Foto+Proses+Sinkronisasi'">
+                            <a href="${r[7]}" target="_blank">
+                                <img src="${fotoUrl}" class="mt-2 w-full h-44 object-cover rounded-lg bg-slate-800 border border-slate-600" 
+                                     onerror="this.src='https://via.placeholder.com/400x200?text=Klik+untuk+Lihat+Foto+di+Drive'">
+                            </a>
                         </div>`;
                 });
         
             } catch (e) {
                 btn.disabled = false;
                 btn.innerText = "CARI";
-                console.error(e);
-                hasil.innerHTML = "Terjadi kesalahan koneksi.";
+                hasil.innerHTML = "<p class='text-center text-red-400'>Gagal memuat data. Pastikan API URL benar.</p>";
             }
         }
         
