@@ -6,59 +6,72 @@
     <title>Logbook Automation Staff</title>
     <script src="https://cdn.tailwindcss.com"></script>
 </head>
-<body class="bg-slate-900 text-white min-h-screen p-4 font-sans">
+<body class="bg-slate-900 text-white min-h-screen p-4 font-sans text-sm">
     <div class="max-w-md mx-auto">
         <h1 class="text-2xl font-bold text-blue-400 mb-6 text-center">⚙️ Logbook Automation Staff</h1>
 
         <div class="bg-slate-800 p-5 rounded-2xl shadow-xl mb-8 border border-slate-700">
-            <h2 class="text-sm font-bold uppercase tracking-wider text-slate-400 mb-4">Input Tugas Harian</h2>
+            <h2 class="text-xs font-bold uppercase tracking-wider text-slate-400 mb-4">Input Tugas Harian</h2>
             <div class="space-y-3">
-                <input type="text" id="nama" placeholder="Nama Staff" class="w-full bg-slate-700 p-3 rounded-lg border-none">
+                <input type="text" id="nama" placeholder="Nama Staff" class="w-full bg-slate-700 p-3 rounded-lg border-none focus:ring-2 focus:ring-blue-500 text-white">
                 <input type="date" id="tgl" class="w-full bg-slate-700 p-3 rounded-lg border-none text-white">
-                <input type="text" id="mesin" placeholder="Nama Mesin / Area" class="w-full bg-slate-700 p-3 rounded-lg border-none">
-                <textarea id="keterangan" placeholder="Keterangan Kegiatan" class="w-full bg-slate-700 p-3 rounded-lg border-none h-20"></textarea>
+                <input type="text" id="mesin" placeholder="Nama Mesin / Area" class="w-full bg-slate-700 p-3 rounded-lg border-none focus:ring-2 focus:ring-blue-500 text-white">
+                <textarea id="keterangan" placeholder="Keterangan Kegiatan" class="w-full bg-slate-700 p-3 rounded-lg border-none h-20 focus:ring-2 focus:ring-blue-500 text-white"></textarea>
+                
                 <div class="flex gap-2 text-xs">
                     <div class="w-1/2">
                         <label class="ml-1 opacity-50">Jam Mulai</label>
-                        <input type="time" id="mulai" class="w-full bg-slate-700 p-3 rounded-lg border-none">
+                        <input type="time" id="mulai" class="w-full bg-slate-700 p-3 rounded-lg border-none text-white">
                     </div>
                     <div class="w-1/2">
                         <label class="ml-1 opacity-50">Jam Selesai</label>
-                        <input type="time" id="selesai" class="w-full bg-slate-700 p-3 rounded-lg border-none">
+                        <input type="time" id="selesai" class="w-full bg-slate-700 p-3 rounded-lg border-none text-white">
                     </div>
                 </div>
-                <input type="file" id="foto" accept="image/*" capture="environment" class="text-sm text-slate-400">
-                <button onclick="simpanData()" id="btnSimpan" class="w-full bg-blue-600 hover:bg-blue-700 py-3 rounded-xl font-bold transition shadow-lg">🚀 Simpan Logbook</button>
+                
+                <div class="bg-slate-700 p-3 rounded-lg">
+                    <label class="block text-[10px] uppercase text-slate-400 mb-1">Ambil Foto Kegiatan</label>
+                    <input type="file" id="foto" accept="image/*" capture="environment" class="w-full text-xs text-slate-400 file:mr-4 file:py-1 file:px-2 file:rounded-full file:border-0 file:text-xs file:font-semibold file:bg-blue-600 file:text-white hover:file:bg-blue-700">
+                </div>
+
+                <button onclick="simpanData()" id="btnSimpan" class="w-full bg-blue-600 hover:bg-blue-700 py-3 rounded-xl font-bold transition shadow-lg active:scale-95">🚀 Simpan Logbook</button>
             </div>
         </div>
 
         <div class="bg-slate-800 p-5 rounded-2xl shadow-xl border border-slate-700">
-            <h2 class="text-sm font-bold uppercase tracking-wider text-green-400 mb-4">Rekap Harian</h2>
+            <h2 class="text-xs font-bold uppercase tracking-wider text-green-400 mb-4">Cari Rekap Harian</h2>
             <div class="flex gap-2 mb-4">
-                <input type="date" id="cariTgl" class="flex-grow bg-slate-700 p-3 rounded-lg border-none">
-                <button onclick="muatData()" id="btnCari" class="bg-green-600 px-4 rounded-lg font-bold">CARI</button>
+                <input type="date" id="cariTgl" class="flex-grow bg-slate-700 p-3 rounded-lg border-none text-white">
+                <button onclick="muatData()" id="btnCari" class="bg-green-600 hover:bg-green-700 px-6 rounded-lg font-bold transition active:scale-95 uppercase text-xs">Cari</button>
             </div>
-            <div id="hasil" class="space-y-4"></div>
+            <div id="hasil" class="space-y-4">
+                <p class="text-center text-slate-500 italic text-xs">Silakan pilih tanggal dan klik cari.</p>
+            </div>
         </div>
     </div>
 
     <script>
+        // URL API Google Apps Script kamu
         const API_URL = "https://script.google.com/macros/s/AKfycbzw2cV0gpzDK0LoGNcGYNidEyVt_tjTOrpnCsQwtyWWtv6MzGynCF7GDYY7Gd2K573F/exec";
 
         async function simpanData() {
             const btn = document.getElementById('btnSimpan');
             const file = document.getElementById('foto').files[0];
-            if(!file || !document.getElementById('nama').value) return alert("Lengkapi data & foto!");
+            const nama = document.getElementById('nama').value;
+            const tgl = document.getElementById('tgl').value;
             
-            btn.disabled = true; btn.innerText = "⌛ Menghubungkan Drive...";
+            if(!file || !nama || !tgl) return alert("⚠️ Mohon isi Nama, Tanggal, dan Foto!");
+            
+            btn.disabled = true; 
+            btn.innerText = "⌛ Memproses Data...";
             
             const reader = new FileReader();
             reader.readAsDataURL(file);
             reader.onload = async () => {
                 const payload = {
                     action: "simpan",
-                    nama: document.getElementById('nama').value,
-                    tanggal: document.getElementById('tgl').value,
+                    nama: nama,
+                    tanggal: tgl,
                     mesin: document.getElementById('mesin').value,
                     keterangan: document.getElementById('keterangan').value,
                     mulai: document.getElementById('mulai').value,
@@ -67,53 +80,102 @@
                 };
 
                 try {
-                    await fetch(API_URL, { method: "POST", body: JSON.stringify(payload) });
-                    alert("Data Tersimpan di Google Sheet!");
-                    location.reload();
-                } catch (e) { alert("Gagal Simpan"); btn.disabled = false; }
+                    const response = await fetch(API_URL, { method: "POST", body: JSON.stringify(payload) });
+                    const result = await response.json();
+                    if(result.status === "success") {
+                        alert("✅ Data Berhasil Disimpan!");
+                        location.reload();
+                    }
+                } catch (e) { 
+                    alert("❌ Gagal Simpan. Periksa Koneksi."); 
+                    btn.disabled = false; 
+                    btn.innerText = "🚀 Simpan Logbook";
+                }
             };
         }
 
         async function muatData() {
-            const tgl = document.getElementById('cariTgl').value;
+            const tglInput = document.getElementById('cariTgl').value;
             const btn = document.getElementById('btnCari');
             const hasil = document.getElementById('hasil');
             
-            if(!tgl) return alert("Pilih tanggal!");
+            if(!tglInput) return alert("Pilih tanggal pencarian!");
+            
+            btn.disabled = true;
             btn.innerText = "...";
-            hasil.innerHTML = "Memuat data...";
+            hasil.innerHTML = "<p class='text-center animate-pulse text-blue-400'>Sedang menarik data dari Sheets...</p>";
 
             try {
                 const res = await fetch(API_URL);
                 const rows = await res.json();
+                btn.disabled = false;
                 btn.innerText = "CARI";
                 hasil.innerHTML = "";
 
-                // Urutan Column: [ID, Tanggal, Nama, Mesin, Keterangan, Mulai, Selesai, LinkFoto]
-                const filtered = rows.slice(1).filter(r => r[1] === tgl);
+                // Filter data berdasarkan tanggal (Kolom index 1)
+                // r[1] seringkali berisi format ISO atau String, kita samakan formatnya
+                const filtered = rows.slice(1).filter(r => {
+                    if (!r[1]) return false;
+                    const dateFromSheet = new Date(r[1]).toISOString().split('T')[0];
+                    return dateFromSheet === tglInput;
+                });
                 
-                if(filtered.length === 0) hasil.innerHTML = "<p class='text-center text-slate-500'>Tidak ada data.</p>";
+                if(filtered.length === 0) {
+                    hasil.innerHTML = "<p class='text-center text-red-400 bg-red-900/20 p-3 rounded-lg'>Tidak ada kegiatan pada tanggal ini.</p>";
+                    return;
+                }
 
                 filtered.forEach(r => {
+                    // Hitung durasi sederhana
+                    let durasiTeks = "";
+                    if(r[5] && r[6]) {
+                        const m = r[5].split(':');
+                        const s = r[6].split(':');
+                        const totalMenit = (parseInt(s[0])*60 + parseInt(s[1])) - (parseInt(m[0])*60 + parseInt(m[1]));
+                        const jam = Math.floor(totalMenit/60);
+                        const mnt = totalMenit%60;
+                        durasiTeks = `${jam > 0 ? jam + ' jam ' : ''}${mnt} menit`;
+                    }
+
                     hasil.innerHTML += `
-                        <div class="bg-slate-700 p-4 rounded-xl relative border-l-4 border-green-500">
-                            <button onclick="hapusData('${r[0]}')" class="absolute top-2 right-2 text-slate-500 hover:text-red-500">❌</button>
-                            <p class="text-xs text-blue-400 font-bold uppercase">${r[2]}</p>
-                            <h3 class="font-bold text-lg">${r[3]}</h3>
-                            <p class="text-sm text-slate-300 my-1 italic">"${r[4]}"</p>
-                            <p class="text-[10px] text-slate-400 mb-2">⏱ ${r[5]} s/d ${r[6]}</p>
-                            <a href="${r[7]}" target="_blank">
-                                <img src="${r[7]}" class="w-full h-32 object-cover rounded-lg shadow-inner">
+                        <div class="bg-slate-700 p-4 rounded-xl relative border-l-4 border-green-500 shadow-md">
+                            <button onclick="hapusData('${r[0]}')" class="absolute top-2 right-2 text-slate-500 hover:text-red-500 p-1">❌</button>
+                            <div class="flex justify-between items-start mb-1">
+                                <p class="text-[10px] text-blue-400 font-bold uppercase tracking-widest">${r[2] || 'Tanpa Nama'}</p>
+                                <p class="text-[9px] bg-slate-600 px-2 py-0.5 rounded text-slate-300 font-mono italic">${durasiTeks}</p>
+                            </div>
+                            <h3 class="font-bold text-lg text-white leading-tight">${r[3] || 'Mesin Umum'}</h3>
+                            <p class="text-sm text-slate-300 my-2 leading-relaxed">"${r[4] || '-'}"</p>
+                            <div class="flex items-center text-[10px] text-slate-400 mb-3 bg-slate-800/50 w-fit px-2 py-1 rounded">
+                                ⏱ <span class="ml-1">${r[5] || '??'} s/d ${r[6] || '??'}</span>
+                            </div>
+                            <a href="${r[7]}" target="_blank" class="block overflow-hidden rounded-lg border border-slate-600">
+                                <img src="${r[7]}" class="w-full h-40 object-cover hover:scale-105 transition duration-300" alt="Foto Kegiatan">
                             </a>
                         </div>`;
                 });
-            } catch (e) { alert("Gagal ambil data"); }
+            } catch (e) { 
+                btn.disabled = false;
+                btn.innerText = "CARI";
+                hasil.innerHTML = "<p class='text-center text-red-400'>Gagal terhubung ke database. Pastikan koneksi internet stabil.</p>"; 
+            }
         }
 
         async function hapusData(id) {
-            if(confirm("Hapus log ini dari database?")) {
-                await fetch(API_URL, { method: "POST", body: JSON.stringify({action: "hapus", id: id}) });
-                muatData();
+            if(confirm("Hapus log kegiatan ini secara permanen?")) {
+                try {
+                    const response = await fetch(API_URL, { 
+                        method: "POST", 
+                        body: JSON.stringify({action: "hapus", id: id}) 
+                    });
+                    const result = await response.json();
+                    if(result.status === "success") {
+                        alert("Data terhapus.");
+                        muatData();
+                    }
+                } catch (e) {
+                    alert("Gagal menghapus data.");
+                }
             }
         }
     </script>
