@@ -1,0 +1,121 @@
+<!DOCTYPE html>
+<html lang="id">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Logbook Automation Staff</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+</head>
+<body class="bg-slate-900 text-white min-h-screen p-4 font-sans">
+    <div class="max-w-md mx-auto">
+        <h1 class="text-2xl font-bold text-blue-400 mb-6 text-center">⚙️ Logbook Automation Staff</h1>
+
+        <div class="bg-slate-800 p-5 rounded-2xl shadow-xl mb-8 border border-slate-700">
+            <h2 class="text-sm font-bold uppercase tracking-wider text-slate-400 mb-4">Input Tugas Harian</h2>
+            <div class="space-y-3">
+                <input type="text" id="nama" placeholder="Nama Staff" class="w-full bg-slate-700 p-3 rounded-lg border-none">
+                <input type="date" id="tgl" class="w-full bg-slate-700 p-3 rounded-lg border-none text-white">
+                <input type="text" id="mesin" placeholder="Nama Mesin / Area" class="w-full bg-slate-700 p-3 rounded-lg border-none">
+                <textarea id="keterangan" placeholder="Keterangan Kegiatan" class="w-full bg-slate-700 p-3 rounded-lg border-none h-20"></textarea>
+                <div class="flex gap-2 text-xs">
+                    <div class="w-1/2">
+                        <label class="ml-1 opacity-50">Jam Mulai</label>
+                        <input type="time" id="mulai" class="w-full bg-slate-700 p-3 rounded-lg border-none">
+                    </div>
+                    <div class="w-1/2">
+                        <label class="ml-1 opacity-50">Jam Selesai</label>
+                        <input type="time" id="selesai" class="w-full bg-slate-700 p-3 rounded-lg border-none">
+                    </div>
+                </div>
+                <input type="file" id="foto" accept="image/*" capture="environment" class="text-sm text-slate-400">
+                <button onclick="simpanData()" id="btnSimpan" class="w-full bg-blue-600 hover:bg-blue-700 py-3 rounded-xl font-bold transition shadow-lg">🚀 Simpan Logbook</button>
+            </div>
+        </div>
+
+        <div class="bg-slate-800 p-5 rounded-2xl shadow-xl border border-slate-700">
+            <h2 class="text-sm font-bold uppercase tracking-wider text-green-400 mb-4">Rekap Harian</h2>
+            <div class="flex gap-2 mb-4">
+                <input type="date" id="cariTgl" class="flex-grow bg-slate-700 p-3 rounded-lg border-none">
+                <button onclick="muatData()" id="btnCari" class="bg-green-600 px-4 rounded-lg font-bold">CARI</button>
+            </div>
+            <div id="hasil" class="space-y-4"></div>
+        </div>
+    </div>
+
+    <script>
+        const API_URL = "https://script.google.com/macros/s/AKfycbzw2cV0gpzDK0LoGNcGYNidEyVt_tjTOrpnCsQwtyWWtv6MzGynCF7GDYY7Gd2K573F/exec";
+
+        async function simpanData() {
+            const btn = document.getElementById('btnSimpan');
+            const file = document.getElementById('foto').files[0];
+            if(!file || !document.getElementById('nama').value) return alert("Lengkapi data & foto!");
+            
+            btn.disabled = true; btn.innerText = "⌛ Menghubungkan Drive...";
+            
+            const reader = new FileReader();
+            reader.readAsDataURL(file);
+            reader.onload = async () => {
+                const payload = {
+                    action: "simpan",
+                    nama: document.getElementById('nama').value,
+                    tanggal: document.getElementById('tgl').value,
+                    mesin: document.getElementById('mesin').value,
+                    keterangan: document.getElementById('keterangan').value,
+                    mulai: document.getElementById('mulai').value,
+                    selesai: document.getElementById('selesai').value,
+                    foto: reader.result
+                };
+
+                try {
+                    await fetch(API_URL, { method: "POST", body: JSON.stringify(payload) });
+                    alert("Data Tersimpan di Google Sheet!");
+                    location.reload();
+                } catch (e) { alert("Gagal Simpan"); btn.disabled = false; }
+            };
+        }
+
+        async function muatData() {
+            const tgl = document.getElementById('cariTgl').value;
+            const btn = document.getElementById('btnCari');
+            const hasil = document.getElementById('hasil');
+            
+            if(!tgl) return alert("Pilih tanggal!");
+            btn.innerText = "...";
+            hasil.innerHTML = "Memuat data...";
+
+            try {
+                const res = await fetch(API_URL);
+                const rows = await res.json();
+                btn.innerText = "CARI";
+                hasil.innerHTML = "";
+
+                // Urutan Column: [ID, Tanggal, Nama, Mesin, Keterangan, Mulai, Selesai, LinkFoto]
+                const filtered = rows.slice(1).filter(r => r[1] === tgl);
+                
+                if(filtered.length === 0) hasil.innerHTML = "<p class='text-center text-slate-500'>Tidak ada data.</p>";
+
+                filtered.forEach(r => {
+                    hasil.innerHTML += `
+                        <div class="bg-slate-700 p-4 rounded-xl relative border-l-4 border-green-500">
+                            <button onclick="hapusData('${r[0]}')" class="absolute top-2 right-2 text-slate-500 hover:text-red-500">❌</button>
+                            <p class="text-xs text-blue-400 font-bold uppercase">${r[2]}</p>
+                            <h3 class="font-bold text-lg">${r[3]}</h3>
+                            <p class="text-sm text-slate-300 my-1 italic">"${r[4]}"</p>
+                            <p class="text-[10px] text-slate-400 mb-2">⏱ ${r[5]} s/d ${r[6]}</p>
+                            <a href="${r[7]}" target="_blank">
+                                <img src="${r[7]}" class="w-full h-32 object-cover rounded-lg shadow-inner">
+                            </a>
+                        </div>`;
+                });
+            } catch (e) { alert("Gagal ambil data"); }
+        }
+
+        async function hapusData(id) {
+            if(confirm("Hapus log ini dari database?")) {
+                await fetch(API_URL, { method: "POST", body: JSON.stringify({action: "hapus", id: id}) });
+                muatData();
+            }
+        }
+    </script>
+</body>
+</html>
