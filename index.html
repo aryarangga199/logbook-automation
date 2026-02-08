@@ -1,80 +1,165 @@
 <!DOCTYPE html>
-<html lang="id">
+<html lang="id" class="dark">
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Logbook Automation System</title>
+    <title>Logbook Automation - Arya Rangga</title>
     <script src="https://cdn.tailwindcss.com"></script>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/xlsx/0.18.5/xlsx.full.min.js"></script>
+    <script>
+        tailwind.config = {
+            darkMode: 'class',
+            theme: {
+                extend: {
+                    colors: {
+                        darkBg: '#0f172a',
+                        darkCard: '#1e293b',
+                    }
+                }
+            }
+        }
+    </script>
+    <style>
+        .custom-scrollbar::-webkit-scrollbar { width: 5px; }
+        .custom-scrollbar::-webkit-scrollbar-track { background: transparent; }
+        .custom-scrollbar::-webkit-scrollbar-thumb { background: #475569; border-radius: 10px; }
+        
+        @keyframes gradient-flow {
+            0% { background-position: 0% 50%; }
+            50% { background-position: 100% 50%; }
+            100% { background-position: 0% 50%; }
+        }
+        .animate-gradient {
+            background-size: 200% auto;
+            animation: gradient-flow 5s linear infinite;
+        }
+        .chip-select:checked + label {
+            background-color: #2563eb;
+            color: white;
+            border-color: #2563eb;
+        }
+    </style>
 </head>
-<body class="bg-slate-900 text-white min-h-screen p-4 font-sans text-sm">
+<body class="bg-slate-50 dark:bg-darkBg text-slate-900 dark:text-white min-h-screen p-4 font-sans text-sm transition-colors duration-300">
+
+    <div class="max-w-6xl mx-auto flex justify-end mb-4">
+        <button onclick="toggleTheme()" class="p-2 rounded-full bg-slate-200 dark:bg-slate-800 hover:ring-2 ring-blue-400 transition-all">
+            <span id="theme-icon-dark" class="hidden dark:block">☀️ Light Mode</span>
+            <span id="theme-icon-light" class="block dark:hidden">🌙 Dark Mode</span>
+        </button>
+    </div>
+
     <div class="max-w-6xl mx-auto">
-        <h1 class="text-3xl font-bold text-blue-400 mb-8 text-center drop-shadow-lg">⚙️ Logbook Automation Staff</h1>
+        <header class="relative py-10 mb-10 overflow-hidden rounded-3xl bg-white dark:bg-darkCard border border-slate-200 dark:border-slate-700 shadow-xl">
+            <div class="absolute top-0 left-1/2 -translate-x-1/2 w-64 h-64 bg-blue-500/10 blur-[100px] rounded-full"></div>
+            
+            <div class="relative z-10 text-center px-4">
+                <h1 class="text-4xl md:text-6xl font-black tracking-tighter">
+                    <span class="bg-clip-text text-transparent bg-gradient-to-r from-blue-600 via-cyan-500 to-emerald-500 animate-gradient">
+                        LOGBOOK AUTOMATION
+                    </span>
+                </h1>
+
+                <div class="mt-6 flex flex-wrap justify-center gap-3">
+                    <div class="relative">
+                        <input type="radio" name="kategori" id="kat1" class="hidden chip-select" checked>
+                        <label for="kat1" class="px-4 py-2 rounded-full border border-slate-300 dark:border-slate-600 cursor-pointer text-xs font-bold hover:bg-slate-100 dark:hover:bg-slate-700 transition-all block">
+                            🛠️ MAINTENANCE
+                        </label>
+                    </div>
+                    <div class="relative">
+                        <input type="radio" name="kategori" id="kat2" class="hidden chip-select">
+                        <label for="kat2" class="px-4 py-2 rounded-full border border-slate-300 dark:border-slate-600 cursor-pointer text-xs font-bold hover:bg-slate-100 dark:hover:bg-slate-700 transition-all block">
+                            🚀 IMPROVEMENT
+                        </label>
+                    </div>
+                    <div class="relative">
+                        <input type="radio" name="kategori" id="kat3" class="hidden chip-select">
+                        <label for="kat3" class="px-4 py-2 rounded-full border border-slate-300 dark:border-slate-600 cursor-pointer text-xs font-bold hover:bg-slate-100 dark:hover:bg-slate-700 transition-all block">
+                            📝 CHECKLIST
+                        </label>
+                    </div>
+                    <div class="relative">
+                        <input type="radio" name="kategori" id="kat4" class="hidden chip-select">
+                        <label for="kat4" class="px-4 py-2 rounded-full border border-slate-300 dark:border-slate-600 cursor-pointer text-xs font-bold hover:bg-slate-100 dark:hover:bg-slate-700 transition-all block">
+                            ⚠️ EMERGENCY
+                        </label>
+                    </div>
+                </div>
+                
+                <div class="mt-8 flex items-center justify-center gap-4 opacity-70">
+                    <div class="h-[1px] w-12 bg-slate-300 dark:bg-slate-600"></div>
+                    <p class="text-xs font-bold tracking-[0.2em] uppercase">
+                        By: <span class="text-blue-600 dark:text-blue-400">Arya Rangga</span>
+                    </p>
+                    <div class="h-[1px] w-12 bg-slate-300 dark:bg-slate-600"></div>
+                </div>
+            </div>
+        </header>
 
         <div class="grid grid-cols-1 lg:grid-cols-2 gap-8">
-            
-            <div class="bg-slate-800 p-6 rounded-2xl shadow-2xl border border-slate-700 h-fit">
-                <h2 class="text-sm font-bold uppercase tracking-widest text-blue-400 mb-6 flex items-center">
-                    <span class="bg-blue-400 w-2 h-2 rounded-full mr-2"></span> Input Tugas Harian
+            <div class="bg-white dark:bg-darkCard p-6 rounded-2xl shadow-lg border border-slate-200 dark:border-slate-700 h-fit">
+                <h2 class="text-xs font-bold uppercase tracking-widest text-blue-600 dark:text-blue-400 mb-6 flex items-center">
+                    <span class="bg-blue-500 w-2 h-2 rounded-full mr-2"></span> Input Tugas Harian
                 </h2>
-                <div class="space-y-4">
-                    <select id="nama" class="w-full bg-slate-700 p-3 rounded-xl border border-slate-600 focus:ring-2 focus:ring-blue-500 outline-none transition-all">
+                <div class="space-y-4 text-slate-900 dark:text-white">
+                    <select id="nama" class="w-full bg-slate-100 dark:bg-slate-700 p-3 rounded-xl border border-slate-200 dark:border-slate-600 outline-none focus:ring-2 ring-blue-500 transition-all">
                         <option value="">-- Pilih Nama Staff --</option>
                         <option value="Arya Rangga">Arya Rangga</option>
                         <option value="Staff Lain">Staff Lain</option>
                     </select>
                     
-                    <input type="date" id="tgl" class="w-full bg-slate-700 p-3 rounded-xl border border-slate-600 outline-none">
-                    <input type="text" id="mesin" placeholder="Nama Mesin / Area" class="w-full bg-slate-700 p-3 rounded-xl border border-slate-600 outline-none">
-                    <textarea id="keterangan" placeholder="Keterangan Kegiatan" class="w-full bg-slate-700 p-3 rounded-xl border border-slate-600 h-24 outline-none"></textarea>
+                    <input type="date" id="tgl" class="w-full bg-slate-100 dark:bg-slate-700 p-3 rounded-xl border border-slate-200 dark:border-slate-600 outline-none">
+                    <input type="text" id="mesin" placeholder="Nama Mesin / Area" class="w-full bg-slate-100 dark:bg-slate-700 p-3 rounded-xl border border-slate-200 dark:border-slate-600 outline-none">
+                    <textarea id="keterangan" placeholder="Keterangan Kegiatan" class="w-full bg-slate-100 dark:bg-slate-700 p-3 rounded-xl border border-slate-200 dark:border-slate-600 h-24 outline-none"></textarea>
                     
                     <div class="flex gap-3">
                         <div class="w-1/2">
-                            <label class="text-[10px] text-slate-400 ml-1">Jam Mulai</label>
-                            <input type="time" id="mulai" class="w-full bg-slate-700 p-3 rounded-xl border border-slate-600 outline-none">
+                            <label class="text-[10px] text-slate-500 ml-1">Jam Mulai</label>
+                            <input type="time" id="mulai" class="w-full bg-slate-100 dark:bg-slate-700 p-3 rounded-xl border border-slate-200 dark:border-slate-600 outline-none">
                         </div>
                         <div class="w-1/2">
-                            <label class="text-[10px] text-slate-400 ml-1">Jam Selesai</label>
-                            <input type="time" id="selesai" class="w-full bg-slate-700 p-3 rounded-xl border border-slate-600 outline-none">
+                            <label class="text-[10px] text-slate-500 ml-1">Jam Selesai</label>
+                            <input type="time" id="selesai" class="w-full bg-slate-100 dark:bg-slate-700 p-3 rounded-xl border border-slate-200 dark:border-slate-600 outline-none">
                         </div>
                     </div>
 
                     <div class="relative">
-                        <label class="block text-xs text-slate-400 mb-2">Unggah Foto Kegiatan</label>
+                        <label class="block text-xs text-slate-500 mb-2">Unggah Foto Kegiatan</label>
                         <input type="file" id="foto" accept="image/*" class="block w-full text-sm text-slate-400 file:mr-4 file:py-2 file:px-4 file:rounded-full file:border-0 file:text-sm file:font-semibold file:bg-blue-600 file:text-white hover:file:bg-blue-700 cursor-pointer">
                     </div>
 
-                    <button onclick="simpanData()" id="btnSimpan" class="w-full bg-blue-600 hover:bg-blue-700 py-4 rounded-xl font-bold transition-all shadow-lg active:scale-95 text-lg mt-4">🚀 Simpan Logbook</button>
+                    <button onclick="simpanData()" id="btnSimpan" class="w-full bg-blue-600 hover:bg-blue-700 text-white py-4 rounded-xl font-bold transition-all shadow-lg active:scale-95 text-lg mt-4">🚀 Simpan Logbook</button>
                 </div>
             </div>
 
-            <div class="bg-slate-800 p-6 rounded-2xl shadow-2xl border border-slate-700">
+            <div class="bg-white dark:bg-darkCard p-6 rounded-2xl shadow-lg border border-slate-200 dark:border-slate-700">
                 <div class="flex justify-between items-center mb-6">
-                    <h2 class="text-sm font-bold uppercase tracking-widest text-green-400 flex items-center">
+                    <h2 class="text-xs font-bold uppercase tracking-widest text-emerald-600 dark:text-green-400 flex items-center">
                         <span class="bg-green-400 w-2 h-2 rounded-full mr-2"></span> Rekap & Filter Data
                     </h2>
-                    <button onclick="exportKeExcel()" class="bg-emerald-600 hover:bg-emerald-700 px-3 py-1.5 rounded-lg text-xs font-bold transition-all flex items-center">
+                    <button onclick="exportKeExcel()" class="bg-emerald-600 hover:bg-emerald-700 text-white px-3 py-1.5 rounded-lg text-xs font-bold transition-all flex items-center">
                         📊 EXPORT EXCEL
                     </button>
                 </div>
 
-                <div class="bg-slate-900/50 p-4 rounded-xl mb-6 border border-slate-700 space-y-3">
+                <div class="bg-slate-50 dark:bg-slate-900/50 p-4 rounded-xl mb-6 border border-slate-200 dark:border-slate-700 space-y-3">
                     <div class="flex gap-2">
                         <div class="w-1/2">
                             <label class="text-[10px] text-slate-500">Dari Tanggal</label>
-                            <input type="date" id="filterTglMulai" class="w-full bg-slate-700 p-2 rounded-lg border-none text-xs">
+                            <input type="date" id="filterTglMulai" class="w-full bg-white dark:bg-slate-700 p-2 rounded-lg border dark:border-none text-xs dark:text-white">
                         </div>
                         <div class="w-1/2">
                             <label class="text-[10px] text-slate-500">Sampai Tanggal</label>
-                            <input type="date" id="filterTglSelesai" class="w-full bg-slate-700 p-2 rounded-lg border-none text-xs">
+                            <input type="date" id="filterTglSelesai" class="w-full bg-white dark:bg-slate-700 p-2 rounded-lg border dark:border-none text-xs dark:text-white">
                         </div>
                     </div>
-                    <input type="text" id="filterMesin" placeholder="Cari Nama Mesin..." class="w-full bg-slate-700 p-2 rounded-lg border-none text-xs">
-                    <button onclick="muatData()" id="btnCari" class="w-full bg-green-600 hover:bg-green-700 py-2.5 rounded-lg font-bold transition-all">TAMPILKAN DATA</button>
+                    <input type="text" id="filterMesin" placeholder="Cari Nama Mesin..." class="w-full bg-white dark:bg-slate-700 p-2 rounded-lg border dark:border-none text-xs dark:text-white">
+                    <button onclick="muatData()" id="btnCari" class="w-full bg-emerald-600 hover:bg-emerald-700 text-white py-2.5 rounded-lg font-bold transition-all">TAMPILKAN DATA</button>
                 </div>
 
-                <div id="hasil" class="space-y-4 max-h-[600px] overflow-y-auto pr-2 custom-scrollbar">
-                    <p class="text-center text-slate-500 italic py-10">Gunakan filter untuk menampilkan data.</p>
+                <div id="hasil" class="space-y-4 max-h-[600px] overflow-y-auto pr-2 custom-scrollbar text-slate-700 dark:text-slate-300">
+                    <p class="text-center italic py-10 opacity-50">Gunakan filter untuk menampilkan data.</p>
                 </div>
             </div>
         </div>
@@ -82,8 +167,26 @@
 
     <script>
         const API_URL = "https://script.google.com/macros/s/AKfycbxmg27cYfWOHs_zrJweHYn-UDjuGlkanzYYYECBK2LRldc1MxCPDqfjojZnTQ0SzE7H/exec";
-        let DATA_TERFILTER = []; // Untuk kebutuhan export
+        let DATA_TERFILTER = [];
 
+        // Fitur Dark Mode
+        if (localStorage.theme === 'dark' || (!('theme' in localStorage) && window.matchMedia('(prefers-color-scheme: dark)').matches)) {
+            document.documentElement.classList.add('dark')
+        } else {
+            document.documentElement.classList.remove('dark')
+        }
+
+        function toggleTheme() {
+            if (document.documentElement.classList.contains('dark')) {
+                document.documentElement.classList.remove('dark');
+                localStorage.theme = 'light';
+            } else {
+                document.documentElement.classList.add('dark');
+                localStorage.theme = 'dark';
+            }
+        }
+
+        // Simpan Data
         async function simpanData() {
             const btn = document.getElementById('btnSimpan');
             const file = document.getElementById('foto').files[0];
@@ -130,22 +233,19 @@
                 hasil.innerHTML = "";
                 
                 DATA_TERFILTER = rows.slice(1).filter(r => {
-                    const tglData = r[1]; // Format YYYY-MM-DD
+                    const tglData = r[1];
                     const mesinData = r[3].toLowerCase();
-                    
                     let matchTgl = true;
                     if(tglMulai && tglSelesai) {
                         matchTgl = tglData >= tglMulai && tglData <= tglSelesai;
                     } else if (tglMulai) {
                         matchTgl = tglData === tglMulai;
                     }
-
-                    const matchMesin = mesinData.includes(cariMesin);
-                    return matchTgl && matchMesin;
+                    return matchTgl && mesinData.includes(cariMesin);
                 });
 
                 if(DATA_TERFILTER.length === 0) {
-                    hasil.innerHTML = "<p class='text-center text-slate-500 py-10'>Data tidak ditemukan.</p>";
+                    hasil.innerHTML = "<p class='text-center py-10 opacity-50'>Data tidak ditemukan.</p>";
                     return;
                 }
 
@@ -154,16 +254,16 @@
                     let fotoUrl = fileId ? `https://drive.google.com/thumbnail?id=${fileId[0]}&sz=w1000` : "";
                     
                     hasil.innerHTML += `
-                        <div class="bg-slate-700/50 p-4 rounded-xl relative border border-slate-600 shadow-sm">
+                        <div class="bg-slate-100 dark:bg-slate-800/50 p-4 rounded-xl relative border border-slate-200 dark:border-slate-700 shadow-sm">
                             <button onclick="hapusData('${r[0]}')" class="absolute top-3 right-3 text-red-400 hover:text-red-600 transition">❌</button>
-                            <span class="px-2 py-0.5 bg-blue-500 text-[9px] font-bold rounded uppercase">${r[2]}</span>
-                            <p class="text-[10px] text-slate-400 mt-1">${r[1]}</p>
-                            <h3 class="font-bold text-white text-base mt-1">${r[3]}</h3>
-                            <p class="text-xs text-slate-300 italic my-2">"${r[4]}"</p>
-                            <div class="flex items-center text-[10px] text-slate-400 mb-3">
+                            <span class="px-2 py-0.5 bg-blue-500 text-white text-[9px] font-bold rounded uppercase">${r[2]}</span>
+                            <p class="text-[10px] opacity-60 mt-1">${r[1]}</p>
+                            <h3 class="font-bold text-base mt-1">${r[3]}</h3>
+                            <p class="text-xs italic my-2 opacity-80">"${r[4]}"</p>
+                            <div class="flex items-center text-[10px] opacity-60 mb-3">
                                 <span class="mr-3">⏱ ${r[5]} - ${r[6]}</span>
                             </div>
-                            <img src="${fotoUrl}" class="w-full h-44 object-cover rounded-lg bg-slate-800 border border-slate-600 cursor-pointer hover:opacity-90" onclick="window.open('${r[7]}', '_blank')">
+                            <img src="${fotoUrl}" class="w-full h-44 object-cover rounded-lg bg-slate-200 dark:bg-slate-800 border border-slate-300 dark:border-slate-600 cursor-pointer hover:opacity-90" onclick="window.open('${r[7]}', '_blank')">
                         </div>`;
                 });
             } catch (e) { alert("Error koneksi server!"); btn.disabled = false; }
@@ -171,20 +271,12 @@
 
         function exportKeExcel() {
             if(DATA_TERFILTER.length === 0) return alert("Tampilkan data terlebih dahulu sebelum export!");
-            
             const ws = XLSX.utils.json_to_sheet(DATA_TERFILTER.map(r => ({
-                "ID": r[0],
-                "Tanggal": r[1],
-                "Nama": r[2],
-                "Mesin": r[3],
-                "Keterangan": r[4],
-                "Mulai": r[5],
-                "Selesai": r[6],
-                "Link Foto": r[7]
+                "ID": r[0], "Tanggal": r[1], "Nama": r[2], "Mesin": r[3], "Keterangan": r[4], "Mulai": r[5], "Selesai": r[6], "Link Foto": r[7]
             })));
             const wb = XLSX.utils.book_new();
             XLSX.utils.book_append_sheet(wb, ws, "Rekap Logbook");
-            XLSX.writeFile(wb, `Logbook_Export_${new Date().toLocaleDateString()}.xlsx`);
+            XLSX.writeFile(wb, `Logbook_${new Date().getTime()}.xlsx`);
         }
 
         async function hapusData(id) {
@@ -195,11 +287,5 @@
             }
         }
     </script>
-
-    <style>
-        .custom-scrollbar::-webkit-scrollbar { width: 5px; }
-        .custom-scrollbar::-webkit-scrollbar-track { background: transparent; }
-        .custom-scrollbar::-webkit-scrollbar-thumb { background: #475569; border-radius: 10px; }
-    </style>
 </body>
 </html>
