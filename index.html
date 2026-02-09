@@ -228,16 +228,16 @@
         // Data Logic
         async function simpanData() {
             const btn = document.getElementById('btnSimpan');
-            const file = document.getElementById('foto').files[0];
+            const fileInput = document.getElementById('foto');
+            const file = fileInput.files[0];
             const nama = document.getElementById('nama').value;
-            if(!file || !nama) return alert("Please fill name and attach a photo!");
+            
+            if(!nama) return alert("Please select staff name!");
             
             btn.disabled = true; 
             btn.innerHTML = `<span class="animate-pulse">PROCESSING...</span>`;
-            
-            const reader = new FileReader();
-            reader.readAsDataURL(file);
-            reader.onload = async () => {
+
+            const sendRequest = async (base64Photo = "") => {
                 const payload = {
                     action: "simpan",
                     nama: nama,
@@ -246,10 +246,11 @@
                     keterangan: document.getElementById('keterangan').value,
                     mulai: document.getElementById('mulai').value,
                     selesai: document.getElementById('selesai').value,
-                    foto: reader.result
+                    foto: base64Photo // Akan berisi string base64 atau string kosong
                 };
+
                 try {
-                    await fetch(API_URL, { method: "POST", body: JSON.stringify(payload) });
+                    const response = await fetch(API_URL, { method: "POST", body: JSON.stringify(payload) });
                     alert("✅ Logbook Saved Successfully!");
                     location.reload();
                 } catch (e) { 
@@ -258,6 +259,21 @@
                     btn.innerText = "🚀 SUBMIT LOGBOOK"; 
                 }
             };
+
+            if (file) {
+                const reader = new FileReader();
+                reader.readAsDataURL(file);
+                reader.onload = async () => {
+                    await sendRequest(reader.result);
+                };
+                reader.onerror = () => {
+                    alert("Error reading file!");
+                    btn.disabled = false;
+                    btn.innerText = "🚀 SUBMIT LOGBOOK";
+                };
+            } else {
+                await sendRequest("");
+            }
         }
 
         async function muatData() {
