@@ -228,6 +228,56 @@
         // Data Logic
         async function simpanData() {
             const btn = document.getElementById('btnSimpan');
+            const fileInput = document.getElementById('foto');
+            const file = fileInput.files[0];
+            const nama = document.getElementById('nama').value;
+            
+            if(!nama) return alert("Please select staff name!");
+            
+            btn.disabled = true; 
+            btn.innerHTML = `<span class="animate-pulse">PROCESSING...</span>`;
+
+            const sendRequest = async (base64Photo = "") => {
+                const payload = {
+                    action: "simpan",
+                    nama: nama,
+                    tanggal: document.getElementById('tgl').value,
+                    mesin: document.getElementById('mesin').value,
+                    keterangan: document.getElementById('keterangan').value,
+                    mulai: document.getElementById('mulai').value,
+                    selesai: document.getElementById('selesai').value,
+                    foto: base64Photo // Akan berisi string base64 atau string kosong
+                };
+
+                try {
+                    const response = await fetch(API_URL, { method: "POST", body: JSON.stringify(payload) });
+                    alert("✅ Logbook Saved Successfully!");
+                    location.reload();
+                } catch (e) { 
+                    alert("Connection Error!"); 
+                    btn.disabled = false; 
+                    btn.innerText = "🚀 SUBMIT LOGBOOK"; 
+                }
+            };
+
+            if (file) {
+                const reader = new FileReader();
+                reader.readAsDataURL(file);
+                reader.onload = async () => {
+                    await sendRequest(reader.result);
+                };
+                reader.onerror = () => {
+                    alert("Error reading file!");
+                    btn.disabled = false;
+                    btn.innerText = "🚀 SUBMIT LOGBOOK";
+                };
+            } else {
+                await sendRequest("");
+            }
+        }
+
+                async function simpanData() {
+            const btn = document.getElementById('btnSimpan');
             const file = document.getElementById('foto').files[0];
             const nama = document.getElementById('nama').value;
             if(!file || !nama) return alert("Please fill name and attach a photo!");
@@ -259,66 +309,6 @@
                 }
             };
         }
-
-        async function muatData() {
-            const btn = document.getElementById('btnCari');
-            const hasil = document.getElementById('hasil');
-            btn.disabled = true; 
-            btn.innerHTML = `<span class="animate-spin">🌀</span> LOADING...`;
-            hasil.innerHTML = `<div class='text-center py-20 animate-pulse font-black text-[10px] tracking-[0.3em] opacity-50'>SYNCING WITH SERVER...</div>`;
-
-            try {
-                const res = await fetch(API_URL);
-                const rows = await res.json();
-                btn.disabled = false; btn.innerText = "LOAD DATA";
-                hasil.innerHTML = "";
-                
-                const tglMulai = document.getElementById('filterTglMulai').value;
-                const tglSelesai = document.getElementById('filterTglSelesai').value;
-                const cariMesin = document.getElementById('filterMesin').value.toLowerCase();
-
-                DATA_TERFILTER = rows.slice(1).filter(r => {
-                    const tglData = r[1];
-                    const mesinData = r[3].toLowerCase();
-                    let matchTgl = true;
-                    if(tglMulai && tglSelesai) {
-                        matchTgl = tglData >= tglMulai && tglData <= tglSelesai;
-                    } else if (tglMulai) {
-                        matchTgl = tglData === tglMulai;
-                    }
-                    return matchTgl && mesinData.includes(cariMesin);
-                });
-
-                if(DATA_TERFILTER.length === 0) {
-                    hasil.innerHTML = "<p class='text-center py-20 opacity-40 font-bold'>No records found.</p>";
-                    return;
-                }
-
-                DATA_TERFILTER.forEach(r => {
-                    let fileId = r[7].match(/[-\w]{25,}/);
-                    let fotoUrl = fileId ? `https://drive.google.com/thumbnail?id=${fileId[0]}&sz=w1000` : "";
-                    hasil.innerHTML += `
-                        <div class="log-card bg-white dark:bg-slate-900/40 p-5 rounded-[2rem] relative border border-slate-200 dark:border-white/5 shadow-sm">
-                            <button onclick="hapusData('${r[0]}')" class="absolute top-4 right-4 text-slate-400 hover:text-red-500 transition-all text-sm">🗑️</button>
-                            <div class="flex items-center gap-2 mb-3">
-                                <span class="px-3 py-1 bg-blue-600 text-white text-[8px] font-black rounded-lg uppercase tracking-widest">${r[2]}</span>
-                                <span class="text-[9px] font-bold opacity-50 uppercase">${r[1]}</span>
-                            </div>
-                            <h3 class="font-black text-sm text-slate-800 dark:text-white uppercase tracking-tight mb-1">${r[3]}</h3>
-                            <p class="text-xs text-slate-500 dark:text-slate-400 font-medium leading-relaxed mb-4">"${r[4]}"</p>
-                            <div class="flex items-center justify-between mb-4">
-                                <span class="text-[9px] font-black text-emerald-500 bg-emerald-500/10 px-2 py-1 rounded-md">⏱ ${r[5]} — ${r[6]}</span>
-                            </div>
-                            <img src="${fotoUrl}" class="w-full h-40 object-cover rounded-2xl bg-slate-100 dark:bg-slate-800 border border-slate-200 dark:border-slate-700 cursor-pointer hover:brightness-110 transition-all" onclick="window.open('${r[7]}', '_blank')">
-                        </div>`;
-                });
-            } catch (e) { 
-                alert("Server connection failed!"); 
-                btn.disabled = false; 
-                btn.innerText = "LOAD DATA";
-            }
-        }
-
         function exportKeExcel() {
             if(DATA_TERFILTER.length === 0) return alert("No data to export! Filter data first.");
             const ws = XLSX.utils.json_to_sheet(DATA_TERFILTER.map(r => ({
