@@ -276,39 +276,6 @@
             }
         }
 
-                async function simpanData() {
-            const btn = document.getElementById('btnSimpan');
-            const file = document.getElementById('foto').files[0];
-            const nama = document.getElementById('nama').value;
-            if(!file || !nama) return alert("Please fill name and attach a photo!");
-            
-            btn.disabled = true; 
-            btn.innerHTML = `<span class="animate-pulse">PROCESSING...</span>`;
-            
-            const reader = new FileReader();
-            reader.readAsDataURL(file);
-            reader.onload = async () => {
-                const payload = {
-                    action: "simpan",
-                    nama: nama,
-                    tanggal: document.getElementById('tgl').value,
-                    mesin: document.getElementById('mesin').value,
-                    keterangan: document.getElementById('keterangan').value,
-                    mulai: document.getElementById('mulai').value,
-                    selesai: document.getElementById('selesai').value,
-                    foto: reader.result
-                };
-                try {
-                    await fetch(API_URL, { method: "POST", body: JSON.stringify(payload) });
-                    alert("✅ Logbook Saved Successfully!");
-                    location.reload();
-                } catch (e) { 
-                    alert("Connection Error!"); 
-                    btn.disabled = false; 
-                    btn.innerText = "🚀 SUBMIT LOGBOOK"; 
-                }
-            };
-        }
         function exportKeExcel() {
             if(DATA_TERFILTER.length === 0) return alert("No data to export! Filter data first.");
             const ws = XLSX.utils.json_to_sheet(DATA_TERFILTER.map(r => ({
