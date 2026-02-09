@@ -236,7 +236,7 @@
             
             btn.disabled = true; 
             btn.innerHTML = `<span class="animate-pulse">PROCESSING...</span>`;
-
+        
             const sendRequest = async (base64Photo = "") => {
                 const payload = {
                     action: "simpan",
@@ -246,26 +246,42 @@
                     keterangan: document.getElementById('keterangan').value,
                     mulai: document.getElementById('mulai').value,
                     selesai: document.getElementById('selesai').value,
-                    foto: base64Photo // Akan berisi string base64 atau string kosong
+                    foto: base64Photo
                 };
-
+        
                 try {
-                    const response = await fetch(API_URL, { method: "POST", body: JSON.stringify(payload) });
-                    alert("✅ Logbook Saved Successfully!");
+                    // Menggunakan fetch dengan parameter tambahan untuk kestabilan Google Script
+                    await fetch(API_URL, { 
+                        method: "POST", 
+                        body: JSON.stringify(payload),
+                        mode: "no-cors", // Menghindari masalah CORS redirect pada Google Script
+                        headers: { "Content-Type": "text/plain;charset=utf-8" }
+                    });
+        
+                    // Karena no-cors tidak bisa membaca respon sukses, 
+                    // kita asumsikan jika tidak masuk ke 'catch' maka berhasil.
+                    alert("✅ Logbook Submitted!");
                     location.reload();
                 } catch (e) { 
-                    alert("Connection Error!"); 
+                    console.error(e);
+                    alert("Connection Error! Pastikan file tidak terlalu besar (Max 5MB)."); 
                     btn.disabled = false; 
                     btn.innerText = "🚀 SUBMIT LOGBOOK"; 
                 }
             };
-
+        
             if (file) {
+                // Validasi ukuran file sederhana (Contoh: Max 5MB)
+                if (file.size > 5 * 1024 * 1024) {
+                    alert("File terlalu besar! Gunakan foto di bawah 5MB.");
+                    btn.disabled = false;
+                    btn.innerText = "🚀 SUBMIT LOGBOOK";
+                    return;
+                }
+        
                 const reader = new FileReader();
                 reader.readAsDataURL(file);
-                reader.onload = async () => {
-                    await sendRequest(reader.result);
-                };
+                reader.onload = async () => await sendRequest(reader.result);
                 reader.onerror = () => {
                     alert("Error reading file!");
                     btn.disabled = false;
@@ -275,7 +291,6 @@
                 await sendRequest("");
             }
         }
-
         async function muatData() {
             const btn = document.getElementById('btnCari');
             const hasil = document.getElementById('hasil');
